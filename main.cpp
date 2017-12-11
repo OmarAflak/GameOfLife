@@ -4,7 +4,8 @@
 #include "include/Board.h"
 #include "include/Utils.h"
 
-static const std::string configFolder = "config";
+static const std::string configFolder = "config/";
+static const std::string configExt = ".gol";
 static const std::string arialFont = "fonts/arial.ttf";
 
 bool nextState(Board &board, int x, int y){
@@ -128,18 +129,9 @@ int main(){
                     refreshTimeMilli+=deltaTime;
                 }
                 else if(event.key.code == sf::Keyboard::S){
-                    std::stringstream ss(configFolder+"/");
-                    std::string input;
-                    std::cout << "configuration name : ";
-                    getline(std::cin, input);
-                    if(input==""){
-                        ss << time(0);
-                    } else{
-                        ss << input;
-                    }
-                    ss << ".gol";
+                    std::string filename = configFolder+askFilename("configuration name : ")+configExt;
 
-                    if(board.save(ss.str())){
+                    if(board.save(filename)){
                         std::cout << "configuration saved." << std::endl;
                     }
                     else{
@@ -147,10 +139,8 @@ int main(){
                     }
                 }
                 else if(event.key.code == sf::Keyboard::O){
-                    std::string filename;
-                    std::cout << "configuration name : ";
-                    getline(std::cin, filename);
-                    filename = configFolder+"/"+filename+".gol";
+                    std::string filename = configFolder+askFilename("configuration name : ")+configExt;
+                    
                     if(board.load(filename)){
                         std::cout << "configuration loaded." << std::endl;
                     }
