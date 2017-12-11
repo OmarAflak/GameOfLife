@@ -10,6 +10,12 @@ static int toInt(std::string str){
     return n;
 }
 
+static std::string toString(int n){
+    std::stringstream ss;
+    ss << n;
+    return ss.str();
+}
+
 static bool toBool(std::string str){
     std::stringstream ss(str);
     bool n;
