@@ -11,11 +11,14 @@ class Board {
     private:
         sf::RenderWindow* m_window;
         std::vector<std::vector<sf::RectangleShape> > m_rows;
+        std::vector<std::vector<bool> > m_board;
         sf::Color m_cellColor;
         sf::Color m_backgroundColor;
         int m_width;
         int m_height;
         int m_rowSize;
+
+        void update();
 
     public:
         Board(sf::RenderWindow* window, int rowSize);

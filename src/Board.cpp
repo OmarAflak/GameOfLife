@@ -14,14 +14,11 @@ Board::Board(sf::RenderWindow* window, int rowSize, sf::Color cellColor, sf::Col
     m_cellColor = cellColor;
     m_backgroundColor = backgroundColor;
 
-    m_rows = std::vector<std::vector<sf::RectangleShape> >(m_width, std::vector<sf::RectangleShape>(m_height));
+    sf::RectangleShape emptyCell = sf::RectangleShape(sf::Vector2f(m_rowSize, m_rowSize));
+    emptyCell.setFillColor(m_backgroundColor);
 
-    for(int i=0 ; i<m_width ; i++){
-        for(int j=0 ; j<m_height ; j++){
-            m_rows[i][j] = sf::RectangleShape(sf::Vector2f(m_rowSize, m_rowSize));
-            m_rows[i][j].setFillColor(m_backgroundColor);
-        }
-    }
+    m_rows = std::vector<std::vector<sf::RectangleShape> >(m_width, std::vector<sf::RectangleShape>(m_height, emptyCell));
+    m_board = std::vector<std::vector<bool> >(m_width, std::vector<bool>(m_height, false));
 }
 
 int Board::getWidth(){
@@ -33,30 +30,25 @@ int Board::getHeight(){
 }
 
 bool Board::get(int x, int y){
-    return m_rows[x][y].getFillColor()==m_cellColor;
+    return m_board[x][y];
 }
 
 void Board::set(int x, int y){
-    m_rows[x][y].setFillColor(m_cellColor);
+    m_board[x][y] = true;
 }
 
 void Board::unset(int x, int y){
-    m_rows[x][y].setFillColor(m_backgroundColor);
+    m_board[x][y] = false;
 }
 
 void Board::toogle(int x, int y){
-    if(m_rows[x][y].getFillColor()==m_cellColor){
-        m_rows[x][y].setFillColor(m_backgroundColor);
-    }
-    else{
-        m_rows[x][y].setFillColor(m_cellColor);
-    }
+    m_board[x][y] = !m_board[x][y];
 }
 
 void Board::clear(){
     for(int i=0 ; i<m_width ; i++){
         for(int j=0 ; j<m_height ; j++){
-            m_rows[i][j].setFillColor(m_backgroundColor);
+            m_board[i][j] = false;
         }
     }
 }
@@ -69,7 +61,7 @@ bool Board::save(std::string filename){
         file << m_rowSize << std::endl;
         for(int i=0 ; i<m_width ; i++){
             for(int j=0 ; j<m_height ; j++){
-                file << (m_rows[i][j].getFillColor()==m_cellColor) << std::endl;
+                file << m_board[i][j] << std::endl;
             }
         }
         file.close();
@@ -88,22 +80,11 @@ bool Board::load(std::string filename){
         m_height = toInt(line);
         getline(file, line);
         m_rowSize = toInt(line);
-
-        m_rows = std::vector<std::vector<sf::RectangleShape> >(m_width, std::vector<sf::RectangleShape>(m_height));
-
-        bool state;
+        
         for(int i=0 ; i<m_width ; i++){
             for(int j=0 ; j<m_height ; j++){
-                m_rows[i][j] = sf::RectangleShape(sf::Vector2f(m_rowSize, m_rowSize));
-
                 getline(file, line);
-                state = toBool(line);
-                if(state){
-                    m_rows[i][j].setFillColor(m_cellColor);
-                }
-                else{
-                    m_rows[i][j].setFillColor(m_backgroundColor);
-                }
+                m_board[i][j] = toBool(line);
             }
         }
 
@@ -113,10 +94,19 @@ bool Board::load(std::string filename){
     return false;
 }
 
-void Board::draw(){
+void Board::update(){
     for(int i=0 ; i<m_width ; i++){
         for(int j=0 ; j<m_height ; j++){
+            m_rows[i][j].setFillColor(m_board[i][j]?m_cellColor:m_backgroundColor);
             m_rows[i][j].setPosition(sf::Vector2f(i*m_rowSize, j*m_rowSize));
+        }
+    }
+}
+
+void Board::draw(){
+    Board::update();
+    for(int i=0 ; i<m_width ; i++){
+        for(int j=0 ; j<m_height ; j++){
             m_window->draw(m_rows[i][j]);
         }
     }
