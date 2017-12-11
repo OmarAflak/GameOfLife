@@ -33,27 +33,15 @@ int Board::getHeight(){
 }
 
 bool Board::get(int x, int y){
-    if(x>=0 && x<m_width && y>=0 && y<m_height){
-        return m_rows[x][y].getFillColor()==m_cellColor;
-    }else{
-        throw std::string("index out of bounds");
-    }
+    return m_rows[x][y].getFillColor()==m_cellColor;
 }
 
 void Board::set(int x, int y){
-    if(x>=0 && x<m_width && y>=0 && y<m_height){
-        m_rows[x][y].setFillColor(m_cellColor);
-    }else{
-        throw std::string("index out of bounds");
-    }
+    m_rows[x][y].setFillColor(m_cellColor);
 }
 
 void Board::unset(int x, int y){
-    if(x>=0 && x<m_width && y>=0 && y<m_height){
-        m_rows[x][y].setFillColor(m_backgroundColor);
-    }else{
-        throw std::string("index out of bounds");
-    }
+    m_rows[x][y].setFillColor(m_backgroundColor);
 }
 
 void Board::toogle(int x, int y){
