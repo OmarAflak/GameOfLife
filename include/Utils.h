@@ -1,7 +1,6 @@
 #ifndef DEF_UTILS
 #define DEF_UTILS
 
-#include <iostream>
 #include <sstream>
 
 static int toInt(std::string str){
@@ -24,18 +23,15 @@ static bool toBool(std::string str){
     return n;
 }
 
-static std::string askFilename(std::string message){
-    std::stringstream ss;
-    std::string input;
-    std::cout << message;
-    getline(std::cin, input);
+static std::string trim(const std::string& str, const std::string& whitespace = " \t"){
+    const auto strBegin = str.find_first_not_of(whitespace);
+    if (strBegin == std::string::npos)
+        return ""; // no content
 
-    if(input==""){
-        ss << time(0);
-    } else{
-        ss << input;
-    }
-    return ss.str();
+    const auto strEnd = str.find_last_not_of(whitespace);
+    const auto strRange = strEnd - strBegin + 1;
+
+    return str.substr(strBegin, strRange);
 }
 
 #endif

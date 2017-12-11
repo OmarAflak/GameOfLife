@@ -61,10 +61,10 @@ void helper(){
     std::cout << "####     [SPACE] = start/stop animation     ####" << std::endl;
     std::cout << "####     [RETURN] = step by step animation  ####" << std::endl;
     std::cout << "####     [DELETE] = clear screen            ####" << std::endl;
+    std::cout << "####     [CTRL+S] = save configuration      ####" << std::endl;
+    std::cout << "####     [CTRL+O] = open configuration      ####" << std::endl;
     std::cout << "####     [+] = accelerate animation         ####" << std::endl;
     std::cout << "####     [-] = slow animation               ####" << std::endl;
-    std::cout << "####     [s] = save current configuration   ####" << std::endl;
-    std::cout << "####     [o] = load configuration           ####" << std::endl;
     std::cout << "####     [h] = help                         ####" << std::endl;
     std::cout << "################################################" << std::endl;
     std::cout << std::endl;
@@ -78,7 +78,12 @@ int main(){
     int deltaTime = 5;
     int refreshTimeMilli = 50;
     bool animate = false;
-    int generationNumber = 0;
+    int generation = 0;
+    bool control = false;
+    bool typing = false;
+    bool typingFinished = false;
+    bool saving = false;
+    bool opening = false;
 
     int row = 10;
     Board board(&window, row, sf::Color::White, sf::Color::Black);
@@ -88,11 +93,11 @@ int main(){
         std::cout << "Could not load arial font" << std::endl;
         exit(1);
     }
-    sf::Text generation;
-    generation.setFont(font);
-    generation.setCharacterSize(18);
-    generation.setColor(sf::Color::Red);
-    generation.setPosition(sf::Vector2f(0,0));
+    sf::Text text;
+    text.setFont(font);
+    text.setCharacterSize(18);
+    text.setColor(sf::Color::Red);
+    text.setPosition(sf::Vector2f(0,0));
 
     helper();
 
@@ -106,19 +111,30 @@ int main(){
                 if(event.key.code == sf::Keyboard::Escape){
                     window.close();
                 }
+                else if(event.key.code == sf::Keyboard::LControl){
+                    control = true;
+                }
                 else if(event.key.code == sf::Keyboard::Space){
-                    animate = !animate;
+                    if(!typing){
+                        animate = !animate;
+                    }
                 }
                 else if(event.key.code == sf::Keyboard::Return){
-                    evolve(board);
-                    generationNumber++;
-                    generation.setString(toString(generationNumber));
+                    if(typing){
+                        typing = false;
+                        typingFinished = true;
+                    }
+                    else{
+                        evolve(board);
+                        generation++;
+                        text.setString(toString(generation));
+                    }
                 }
                 else if(event.key.code == sf::Keyboard::Delete){
                     board.clear();
                     animate = false;
-                    generationNumber = 0;
-                    generation.setString("0");
+                    generation = 0;
+                    text.setString("0");
                 }
                 else if(event.key.code == sf::Keyboard::Add){
                     if(refreshTimeMilli>=deltaTime){
@@ -128,28 +144,39 @@ int main(){
                 else if(event.key.code == sf::Keyboard::Subtract){
                     refreshTimeMilli+=deltaTime;
                 }
-                else if(event.key.code == sf::Keyboard::S){
-                    std::string filename = configFolder+askFilename("configuration name : ")+configExt;
-
-                    if(board.save(filename)){
-                        std::cout << "configuration saved." << std::endl;
-                    }
-                    else{
-                        std::cout << "could not save current configuration" << std::endl;
-                    }
+                else if(control && event.key.code == sf::Keyboard::S){
+                    animate = false;
+                    typing = true;
+                    typingFinished = false;
+                    saving = true;
+                    text.setString("configuration name : ");
                 }
-                else if(event.key.code == sf::Keyboard::O){
-                    std::string filename = configFolder+askFilename("configuration name : ")+configExt;
-                    
-                    if(board.load(filename)){
-                        std::cout << "configuration loaded." << std::endl;
-                    }
-                    else{
-                        std::cout << "could not load configuration " << filename << std::endl;
-                    }
+                else if(control && event.key.code == sf::Keyboard::O){
+                    animate = false;
+                    typing = true;
+                    typingFinished = false;
+                    opening = true;
+                    text.setString("configuration name : ");
                 }
                 else if(event.key.code == sf::Keyboard::H){
-                    helper();
+                    if(!typing){
+                        helper();
+                    }
+                }
+            }
+            else if (event.type == sf::Event::KeyReleased){
+                if(event.key.code == sf::Keyboard::LControl){
+                    control = false;
+                }
+            }
+            else if(event.type == sf::Event::TextEntered){
+                if (typing && !control && event.text.unicode>=0 && event.text.unicode<=127){
+                    if(event.text.unicode==8){
+                        std::string str = text.getString();
+                        text.setString(str.substr(0, str.size()-1));
+                    } else{
+                        text.setString(text.getString() + static_cast<char>(event.text.unicode));
+                    }
                 }
             }
             else if(event.type == sf::Event::MouseButtonPressed){
@@ -159,16 +186,34 @@ int main(){
             }
         }
 
+        if(typingFinished){
+            std::string str = text.getString();
+            str = str.substr(str.find_first_of(":")+1);
+            std::string filename = configFolder+trim(str)+configExt;
+
+            std::cout << "[" << filename << "]" << std::endl;
+
+            if(saving){
+                text.setString(board.save(filename)?"configuration saved.":"could not save configuration");
+            }
+            else if(opening){
+                text.setString(board.load(filename)?"configuration loaded.":"could not load configuration");
+            }
+            saving = false;
+            opening = false;
+            typingFinished = false;
+        }
+
         if(animate && timer.getElapsedTime().asMilliseconds()>refreshTimeMilli){
             evolve(board);
-            generationNumber++;
-            generation.setString(toString(generationNumber));
+            generation++;
+            text.setString(toString(generation));
             timer.restart();
         }
 
         window.clear();
         board.draw();
-        window.draw(generation);
+        window.draw(text);
         window.display();
     }
 
