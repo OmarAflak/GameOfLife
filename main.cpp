@@ -18,14 +18,14 @@ bool nextState(Board &board, int x, int y){
     for(int i=xStart ; i<=xEnd ; i++){
         for(int j=yStart ; j<=yEnd ; j++){
             if(i!=x || j!=y){
-                if(board.get(i,j)){
+                if(board.isCell(i,j)){
                     counter++;
                 }
             }
         }
     }
 
-    if(board.get(x,y)){
+    if(board.isCell(x,y)){
         return (counter==2 || counter==3);
     }
     else{
@@ -45,10 +45,10 @@ void evolve(Board &board){
     for(int i=0 ; i<board.getWidth() ; i++){
         for(int j=0 ; j<board.getHeight() ; j++){
             if(states[i][j]){
-                board.set(i,j);
+                board.putCell(i,j);
             }
             else{
-                board.unset(i,j);
+                board.removeCell(i,j);
             }
         }
     }
@@ -75,7 +75,6 @@ void helper(){
 int main(){
     srand(time(NULL));
 
-    sf::RenderWindow window(sf::VideoMode(800, 800), "Game Of Life");
     sf::Clock timer;
     int deltaTime = 5;
     int refreshTimeMilli = 50;
@@ -88,18 +87,16 @@ int main(){
     bool opening = false;
     bool drawing = false;
     bool erasing = false;
-
     int row = 10;
+
+    sf::RenderWindow window(sf::VideoMode(800, 800), "Game Of Life");
     Board board(&window, row, sf::Color::White, sf::Color::Black);
 
     sf::Font font;
     if(!font.loadFromFile(arialFont)){
-        std::cout << "Could not load arial font" << std::endl;
         exit(1);
     }
-    sf::Text text;
-    text.setFont(font);
-    text.setCharacterSize(18);
+    sf::Text text("0", font, 18);
     text.setColor(sf::Color::Red);
     text.setPosition(sf::Vector2f(0,0));
 
@@ -201,15 +198,15 @@ int main(){
             }
             else if(event.type == sf::Event::MouseButtonPressed){
                 if(event.mouseButton.button == sf::Mouse::Left){
-                    board.toogle(event.mouseButton.x/row, event.mouseButton.y/row);
+                    board.toogleCell(event.mouseButton.x/row, event.mouseButton.y/row);
                 }
             }
             else if(event.type == sf::Event::MouseMoved){
                 if(drawing && !erasing){
-                    board.set(event.mouseMove.x/row, event.mouseMove.y/row);
+                    board.putCell(event.mouseMove.x/row, event.mouseMove.y/row);
                 }
                 else if(!drawing && erasing){
-                    board.unset(event.mouseMove.x/row, event.mouseMove.y/row);
+                    board.removeCell(event.mouseMove.x/row, event.mouseMove.y/row);
                 }
             }
         }

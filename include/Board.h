@@ -16,21 +16,22 @@ class Board {
         sf::Color m_backgroundColor;
         int m_width;
         int m_height;
-        int m_rowSize;
+        int m_cellSize;
 
         void update();
 
     public:
-        Board(sf::RenderWindow* window, int rowSize);
-        Board(sf::RenderWindow* window, int rowSize, sf::Color cellColor, sf::Color backgroundColor);
+        Board(sf::RenderWindow* window, int cellSize);
+        Board(sf::RenderWindow* window, int cellSize, sf::Color cellColor, sf::Color backgroundColor);
 
         int getWidth();
         int getHeight();
-        bool get(int x, int y);
+        int getCellSize();
+        bool isCell(int x, int y);
 
-        void set(int x, int y);
-        void unset(int x, int y);
-        void toogle(int x, int y);
+        void putCell(int x, int y);
+        void removeCell(int x, int y);
+        void toogleCell(int x, int y);
         void clear();
 
         bool save(std::string filename);
