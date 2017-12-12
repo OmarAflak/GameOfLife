@@ -57,15 +57,17 @@ void evolve(Board &board){
 void helper(){
     std::cout << std::endl;
     std::cout << "################# GAME OF LIFE #################" << std::endl;
-    std::cout << "####     [MOUSE] = add/remove cells         ####" << std::endl;
-    std::cout << "####     [SPACE] = start/stop animation     ####" << std::endl;
+    std::cout << "####     [MOUSE]  = add/remove cells        ####" << std::endl;
+    std::cout << "####     [SPACE]  = start/stop animation    ####" << std::endl;
     std::cout << "####     [RETURN] = step by step animation  ####" << std::endl;
-    std::cout << "####     [DELETE] = clear screen            ####" << std::endl;
+    std::cout << "####     [CTRL+D] = clear screen            ####" << std::endl;
     std::cout << "####     [CTRL+S] = save configuration      ####" << std::endl;
     std::cout << "####     [CTRL+O] = open configuration      ####" << std::endl;
+    std::cout << "####     [CTRL+H] = help                    ####" << std::endl;
+    std::cout << "####     [C+MOUSE] = draw                   ####" << std::endl;
+    std::cout << "####     [V+MOUSE] = erase                  ####" << std::endl;
     std::cout << "####     [+] = accelerate animation         ####" << std::endl;
     std::cout << "####     [-] = slow animation               ####" << std::endl;
-    std::cout << "####     [h] = help                         ####" << std::endl;
     std::cout << "################################################" << std::endl;
     std::cout << std::endl;
 }
@@ -84,6 +86,8 @@ int main(){
     bool typingFinished = false;
     bool saving = false;
     bool opening = false;
+    bool drawing = false;
+    bool erasing = false;
 
     int row = 10;
     Board board(&window, row, sf::Color::White, sf::Color::Black);
@@ -130,12 +134,6 @@ int main(){
                         text.setString(toString(generation));
                     }
                 }
-                else if(event.key.code == sf::Keyboard::Delete){
-                    board.clear();
-                    animate = false;
-                    generation = 0;
-                    text.setString("0");
-                }
                 else if(event.key.code == sf::Keyboard::Add){
                     if(refreshTimeMilli>=deltaTime){
                         refreshTimeMilli-=deltaTime;
@@ -143,6 +141,12 @@ int main(){
                 }
                 else if(event.key.code == sf::Keyboard::Subtract){
                     refreshTimeMilli+=deltaTime;
+                }
+                else if(control && event.key.code == sf::Keyboard::D){
+                    board.clear();
+                    animate = false;
+                    generation = 0;
+                    text.setString("0");
                 }
                 else if(control && event.key.code == sf::Keyboard::S){
                     animate = false;
@@ -158,15 +162,31 @@ int main(){
                     opening = true;
                     text.setString("configuration name : ");
                 }
-                else if(event.key.code == sf::Keyboard::H){
+                else if(control && event.key.code == sf::Keyboard::H){
                     if(!typing){
                         helper();
                     }
+                }
+                else if(event.key.code == sf::Keyboard::C){
+                    drawing = true;
+                    erasing = false;
+                }
+                else if(event.key.code == sf::Keyboard::V){
+                    drawing = false;
+                    erasing = true;
                 }
             }
             else if (event.type == sf::Event::KeyReleased){
                 if(event.key.code == sf::Keyboard::LControl){
                     control = false;
+                }
+                else if(event.key.code == sf::Keyboard::C){
+                    drawing = false;
+                    erasing = false;
+                }
+                else if(event.key.code == sf::Keyboard::V){
+                    drawing = false;
+                    erasing = false;
                 }
             }
             else if(event.type == sf::Event::TextEntered){
@@ -182,6 +202,14 @@ int main(){
             else if(event.type == sf::Event::MouseButtonPressed){
                 if(event.mouseButton.button == sf::Mouse::Left){
                     board.toogle(event.mouseButton.x/row, event.mouseButton.y/row);
+                }
+            }
+            else if(event.type == sf::Event::MouseMoved){
+                if(drawing && !erasing){
+                    board.set(event.mouseMove.x/row, event.mouseMove.y/row);
+                }
+                else if(!drawing && erasing){
+                    board.unset(event.mouseMove.x/row, event.mouseMove.y/row);
                 }
             }
         }
